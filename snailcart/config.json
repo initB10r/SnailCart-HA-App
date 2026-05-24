@@ -1,0 +1,52 @@
+{
+  "name": "SnailCart",
+  "version": "0.9.3",
+  "slug": "snailcart",
+  "image": "ghcr.io/initb10r/{arch}-snailcart",
+  "description": "Einkaufslisten & Vorratsverwaltung mit Barcode-Scan (Open Food Facts)",
+  "url": "https://github.com/initB10r/SnailCart",
+  "arch": ["aarch64", "amd64"],
+  "init": false,
+  "startup": "application",
+  "boot": "auto",
+  "ingress": true,
+  "ingress_port": 8099,
+  "panel_icon": "mdi:cart",
+  "panel_title": "SnailCart",
+  "panel_admin": false,
+  "homeassistant_api": true,
+  "hassio_api": true,
+  "auth_api": true,
+  "host_network": false,
+  "map": ["share:rw"],
+  "options": {
+    "admins": ["marc"],
+    "off_account": {
+      "username": "",
+      "password": ""
+    },
+    "auto_add_categories": true,
+    "mhd_notify_days_before": 3,
+    "min_stock_default_list": "",
+    "notify_service": "",
+    "offer_plz": "",
+    "offer_retailers": [],
+    "offer_refresh_hours": 6,
+    "log_level": "info"
+  },
+  "schema": {
+    "admins": ["str"],
+    "off_account": {
+      "username": "str?",
+      "password": "password?"
+    },
+    "auto_add_categories": "bool",
+    "mhd_notify_days_before": "int(0,90)",
+    "min_stock_default_list": "str?",
+    "notify_service": "str?",
+    "offer_plz": "str?",
+    "offer_retailers": ["str"],
+    "offer_refresh_hours": "int(0,168)",
+    "log_level": "list(trace|debug|info|notice|warning|error|fatal)"
+  }
+}
