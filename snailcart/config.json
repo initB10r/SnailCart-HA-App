@@ -1,6 +1,6 @@
 {
   "name": "SnailCart",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "slug": "snailcart",
   "image": "ghcr.io/initb10r/{arch}-snailcart",
   "description": "Einkaufslisten & Vorratsverwaltung mit Barcode-Scan (Open Food Facts)",
