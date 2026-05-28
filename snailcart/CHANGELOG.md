@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.16.1
+
+- Kamera-Fehlerbox: Hilfetext für die Home-Assistant-Companion-App
+  (iOS-Einstellungen → Apps → Home Assistant → Kamera) als
+  Primär-Anleitung; der Safari/PWA-Pfad steht jetzt als Fallback
+  darunter, falls die HA-App-Option fehlt oder nichts bewirkt.
+
+## 0.16.0
+
+- **OFF-Kategorie-Chips**: Beim Hinzufügen werden jetzt **alle** OFF-Kategorien
+  als Chips angezeigt (spezifisch → allgemein). Eigene Kategorien sind **grün
+  ✓** markiert, neue **gelb +**. Tap auf einen grünen Chip übernimmt die
+  eigene Kategorie; gelbe Chips legen die neue Kategorie sofort an (oder
+  fragen nach, wenn Auto-Anlegen aus ist). Damit ist klar erkennbar, welche
+  OFF-Vorschläge schon im eigenen System existieren.
+- Auch beim erneuten Lookup eines gecachten Produkts wird die Chip-Liste mit
+  den frischen deutschen Namen aktualisiert.
+
 ## 0.15.9
 
 - Auf der HA-Add-on-Seite (neben Start/Stop/Update) gibt es ab sofort
