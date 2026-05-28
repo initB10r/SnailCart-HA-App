@@ -1,0 +1,97 @@
+# SnailCart
+
+Einkaufslisten, Vorrats- und Angebotsverwaltung als Home-Assistant-Add-on.
+Läuft als eigenständige Web-App (Vue 3 / Express) im Ingress-Tab von HA und
+optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
+
+## Funktionen
+
+### Einkaufslisten
+- Mehrere Listen pro Haushalt, **owner + sharedWith**-Berechtigungen
+  (Sohn sieht Papas Liste nur, wenn explizit geteilt — Audit in v0.15.8).
+- Drag-and-drop Sortierung pro Benutzer, individuelle Sortier-Modi
+  (Einfüge-Reihenfolge / Kategorie / A-Z).
+- Swipe-Aktionen: links → Einlagern, rechts → Löschen / „Nicht verfügbar".
+- **Sammel-Einkauf** über mehrere Listen gleichzeitig.
+- Echtzeit-Updates via Server-Sent Events (mit Berechtigungs-Filter).
+
+### Produkte & Barcode
+- Lokaler Produkt-Katalog mit Bild, Marke, Standard-Einheit, Kategorie.
+- **Barcode-Scan** (native iOS BarcodeDetector + ZXing-Fallback) mit
+  freundlicher Fehlerführung, wenn die Kamera-Berechtigung fehlt.
+- Manueller EAN-Eingabe und Online-Suche.
+- **Open Food Facts / Open Beauty Facts / Open Products Facts**-Integration:
+  Lookup über Barcode oder Online-Textsuche, deutsche Kategorien mit
+  automatischem Match gegen die eigenen Kategorien, Bild, Nutri-Score und
+  Nährwerte. Such-Ergebnisse sind auf Deutschland beschränkt.
+- Eigener OFF-Account zum **Beitragen** von Produkten (optional).
+
+### Vorratsverwaltung (Speisekammer)
+- Beliebig viele Speisekammern mit benannten Lagerorten (z. B. „Fach 1").
+- Mindestbestand- und MHD-Tracking, Schnell-Plus/Minus pro Reihe.
+- Pull-Down vom Einkauf direkt in die Speisekammer beim Abschluss.
+- Push-Benachrichtigung über HA-Notify-Dienst (z. B. Pushover) bei
+  Unterschreiten des Mindestbestands oder ablaufendem MHD —
+  konfigurierbarer Sound pro Typ.
+
+### Angebote
+- Anbindung an **marktguru** (POST-Code-basiert).
+- Pro Produkt eigener Suchbegriff und „Genau"/„Alle Varianten"-Modus.
+- Listen-Ansicht zeigt das beste Angebot inline; Tap auf die grüne Zeile
+  öffnet alle Treffer (Preis-sortiert).
+- Push-Benachrichtigung an Listen-Owner und sharedWith bei neuen Angeboten.
+
+### Voice-API (Siri / Alexa)
+- Eigener Endpoint (`/api/voice/add`) auf Port 8098, ausschließlich
+  per `X-API-Key` authentifiziert — sicher freigebbar via cloudflared.
+- Pro Nutzer eigener Voice-Key (in der App generierbar).
+- **Mehrrunden-Rückfragen**: „In welche Liste?" / „Welche Variante?".
+- Erkennt Listen am Besitzer-Namen (z. B. „Jacobs Einkaufsliste").
+- Bestätigung vor dem Anlegen unbekannter Produkte (Ja/Nein).
+
+### Benutzer
+- Synchronisation der HA-Benutzer in die App.
+- Pro Benutzer: **Anzeigename** (überschreibt Username), Voice-Key,
+  Pushover-Device, Benachrichtigungs-Schalter (Mindestbestand / MHD /
+  Angebote) und Stumm-Listen je Bereich.
+
+### Ansicht
+- **Dark Mode** in Einstellungen → Erscheinungsbild (Auto / Hell / Dunkel),
+  persistent pro Gerät, FOUC-frei beim Cold-Start.
+- Deutsche und englische Lokalisierung, umschaltbar pro Gerät.
+
+## Konfiguration
+
+```yaml
+admins:
+  - marc          # HA-Usernamen mit Admin-Rechten (case-insensitiv)
+off_account:
+  username: ""    # optional, für Beitragen an Open Food Facts
+  password: ""
+auto_add_categories: true
+mhd_notify_days_before: 3
+notify_service: ""     # z. B. notify.pushover
+offer_plz: ""           # PLZ für marktguru
+offer_retailers: []
+offer_refresh_hours: 6
+log_level: info
+```
+
+## Ports
+
+- **Ingress (intern, 8099)**: Haupt-UI über das HA-Sidebar-Icon.
+- **8098/tcp** (optional, Host): Voice-API für Siri/Alexa. **Nur freigeben,
+  wenn genutzt** und am besten via cloudflared exposen — der Listener
+  authentifiziert ausschließlich per X-API-Key und ignoriert
+  X-Remote-User.
+
+## Daten
+
+Alle Daten werden im Add-on-eigenen `/data`-Volume als JSON gespeichert
+(`lists.json`, `items.json`, `products.json`, `pantries.json`,
+`pantry_items.json`, `categories.json`, `units.json`,
+`user_settings.json`, `app_settings.json`).
+
+## Source
+
+<https://github.com/initB10r/SnailCart>
