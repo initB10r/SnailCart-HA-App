@@ -50,14 +50,26 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 - Bestätigung vor dem Anlegen unbekannter Produkte (Ja/Nein).
 
 ### Benutzer
-- Synchronisation der HA-Benutzer in die App.
+- **Identität = HA-User-UUID**: Intern wird jeder Benutzer ausschließlich
+  über seine Home-Assistant-UUID (aus dem Ingress-Header
+  `X-Remote-User-Id`) referenziert — Listen-Besitz, Freigaben, „hinzugefügt
+  von", Einstellungen, Präsenz und Voice-Keys hängen alle an der UUID, nicht
+  am Username. Der Login-Username dient nur der Admin-Prüfung und der Anzeige.
+- **Alle HA-Personen sichtbar**: Die Benutzerverwaltung listet alle
+  `person.*`-Entities aus Home Assistant (mit echter `user_id`) — auch
+  Personen, die SnailCart noch nie geöffnet haben. Bis zum ersten App-Start
+  wird der `friendly_name` angezeigt; danach kommen die übrigen Infos dazu.
 - **HA-Profil-Integration**: Anzeigename und Avatar kommen automatisch
   aus den `person.*`-Entities von Home Assistant (Core-API). Auflösung
   in der Reihenfolge: 1. eigenes hochgeladenes Foto / manueller Name →
   2. HA-Profilbild bzw. `friendly_name` der zugeordneten Person →
-  3. farbige Initialen bzw. Username. Die Username↔Person-Verknüpfung
-  wird aus dem Ingress-Header gelernt (Fallback: Namensabgleich). Fällt
-  HA aus, bleibt alles funktionsfähig (Upload/Initialen).
+  3. farbige Initialen. Username und Anzeigename werden je UUID aus dem
+  Ingress-Header gelernt. Fällt HA aus, bleibt alles funktionsfähig
+  (Upload/Initialen).
+- **Namensanzeige (global, Admin)**: In den Einstellungen wählbar, wie Namen
+  überall dargestellt werden — Voller Name, Vorname, Nachname, Initialen oder
+  Benutzername. Wird aus der HA-Identität abgeleitet; ein manuell gesetzter
+  Anzeigename pro Benutzer hat Vorrang.
 - Pro Benutzer: **Anzeigename** (überschreibt HA/Username), **Avatar**
   (Foto-Upload als Override, wird auf 256×256 verkleinert; ohne eigenes
   Bild HA-Profilbild, sonst farbige Initialen mit deterministischer

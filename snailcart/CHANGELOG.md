@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.20.1
+
+- **Fix Namensanzeige „Benutzername"**: Für HA-Personen, die SnailCart noch nie
+  geöffnet haben (kein aus dem Header gelernter Login-Name), wurde im Modus
+  „Benutzername" fälschlich der volle Name angezeigt. Jetzt wird hilfsweise der
+  `person.<slug>`-Entity-Name als Benutzername verwendet.
+
+## 0.20.0
+
+- **Namensanzeige global konfigurierbar (Admin)**: Einstellungen → Namensanzeige
+  legt fest, wie Benutzernamen überall dargestellt werden — Voller Name,
+  Vorname, Nachname, Initialen oder Benutzername. Der Name wird aus der
+  HA-Identität abgeleitet; ein pro Benutzer manuell gesetzter Anzeigename hat
+  weiterhin Vorrang.
+- **Listenfreigabe: Suche statt manuellem Hinzufügen**: Da nun alle bekannten
+  HA-Benutzer angezeigt werden, entfällt das manuelle Eintippen eines
+  Benutzernamens. Stattdessen filtert ein Suchfeld die Benutzerliste (ab >6
+  Benutzern), aktiv ausgewählte bleiben immer sichtbar.
+
+## 0.19.0
+
+- **Identität durchgängig auf HA-UUID umgestellt (sauberer Neustart)**: Interne
+  Identität ist ab jetzt ausschließlich die Home-Assistant-User-UUID aus dem
+  Ingress-Header `X-Remote-User-Id`. Besitzer, Freigaben, „hinzugefügt von",
+  Speisekammer-Ersteller, Benutzer-Einstellungen, Präsenz, Voice-Keys und
+  Angebots-Benachrichtigungen werden alle über die UUID verschlüsselt — kein
+  Username-Abgleich, keine Groß-/Kleinschreibungs-Heuristik mehr. Der
+  Login-Username dient nur noch der Admin-Prüfung (`admins:` in der Konfig) und
+  der Anzeige.
+- **Benutzerliste aus HA-Personen**: Die Roster-Liste kommt aus den
+  `person.*`-Entities (jede mit echter `user_id`) plus aus den UUIDs, die schon
+  in Daten vorkommen. Der unzuverlässige Supervisor-Aufruf `list_users`
+  (lieferte ohnehin keine UUID) wurde entfernt.
+- **Kein Migrationspfad**: Diese Version startet mit leerem Datenbestand. Alte
+  username-basierte Daten werden nicht übernommen — vor dem Update bitte sauber
+  neu installieren.
+
+## 0.18.8
+
+- **Alle HA-Personen in der Benutzerliste**: Jetzt wo die Core-API erreichbar
+  ist, werden *alle* `person.*`-Entities aus Home Assistant in die
+  Benutzerverwaltung gemischt — auch Personen, die SnailCart noch nie geöffnet
+  haben. Schlüssel ist der echte Login-Username, sobald bekannt (UUID-Abgleich
+  aus `ha_user_map.json`), sonst der Person-Entity-Slug. Anzeigename und Avatar
+  kommen aus HA.
+
 ## 0.18.7
 
 - **Temporäres HA-Debug-Panel entfernt**: Das Diagnose-Panel in den
