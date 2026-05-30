@@ -1,5 +1,125 @@
 # Changelog
 
+## 0.18.7
+
+- **Temporäres HA-Debug-Panel entfernt**: Das Diagnose-Panel in den
+  Einstellungen sowie der Endpoint `GET /api/ha-users/debug` (inkl.
+  `probeCore`) waren nur zur Eingrenzung des Token-Problems gedacht und sind
+  jetzt wieder raus.
+
+## 0.18.6
+
+- **Supervisor-Token wird wieder gelesen (Avatar-Fix)**: Ursache des
+  fehlenden `SUPERVISOR_TOKEN` war, dass das s6-overlay-Init des HA-Base-Images
+  (`/init`, trotz `init: false` weiterhin ENTRYPOINT) die Umgebung
+  standardmäßig leert. Mit `S6_KEEP_ENV=1` im Dockerfile bleibt die vom
+  Supervisor injizierte Umgebung erhalten — damit funktioniert die Core-API
+  (`/api/states`) und das **HA-Avatar** wird endlich angezeigt.
+
+## 0.18.5
+
+- **Diagnose des fehlenden Supervisor-Tokens**: Der Debug-Probe listet jetzt
+  *alle* Env-Variablen-**Namen** (`envKeys`, ohne Werte) plus `envCount`.
+  Damit lässt sich unterscheiden, ob der Container eine normale HA-Umgebung
+  hat (Supervisor injiziert kein Token) oder eine kahle (unser direkter
+  `CMD`/`init: false` umgeht das Init des Base-Images und verliert dabei die
+  Umgebung).
+
+## 0.18.4
+
+- **HA-Anzeigename ohne Core-API**: Der Name wird jetzt direkt aus dem
+  Ingress-Header `X-Remote-User-Display-Name` gelernt und persistiert
+  (`ha_user_map.json`). Damit erscheint „Marc Bauschlicher" auch dann,
+  wenn der Supervisor-Token fehlt und die `person.*`-Abfrage scheitert.
+  Auflösung: in-App-Override → gelernter HA-Name → person.friendly_name →
+  Username.
+- **Token-Robustheit**: Es wird jetzt `SUPERVISOR_TOKEN` *oder*
+  `HASSIO_TOKEN` gelesen. Der Debug-Probe listet zusätzlich die
+  vorhandenen token-relevanten Env-Variablen-Namen (`envTokenKeys`,
+  ohne Werte), um ein fehlendes Token einzugrenzen.
+
+## 0.18.3
+
+- **HA-Debug in der Oberfläche** (Einstellungen → „HA-Debug (temporär)",
+  nur Admin): Button „Prüfen" zeigt die Diagnose direkt als JSON an,
+  inkl. „JSON kopieren". Damit ist die Personen-Integration auch ohne
+  Desktop/URL-Tricks vom Handy aus diagnostizierbar.
+
+## 0.18.2
+
+- **Selbstdiagnose im Debug-Endpoint**: `GET /api/ha-users/debug` führt
+  jetzt einen Live-Aufruf der Core-API (`/api/states`) aus und meldet
+  Token-Vorhandensein, HTTP-Status und die gefundenen `person.*`-Entities
+  — damit lässt sich in einer Abfrage feststellen, ob/warum die
+  HA-Personen nicht geladen werden.
+
+## 0.18.1
+
+- **Robusteres Person-Matching**: Der `friendly_name` einer HA-Person ist
+  oft länger als der Login-Username (z. B. „Marc Bauschlicher" vs.
+  `marc`). Zusätzlich zum UUID-Link (`X-Remote-User-Id`) matcht SnailCart
+  jetzt auch über die Person-Entity-ID und über einen Token-Abgleich
+  (Username steckt als Wort im `friendly_name`). Damit greifen
+  HA-Avatar und -Name auch ohne etablierten UUID-Link.
+- Admin-Debug `GET /api/ha-users/debug` zeigt jetzt zusätzlich die
+  ankommenden Ingress-Header (`X-Remote-User-Id/-Name/-Display-Name`),
+  um den UUID-Link verifizieren zu können.
+
+## 0.18.0
+
+- **HA-Benutzerinfos statt Rad neu erfinden**: SnailCart zieht jetzt
+  Anzeigename und Avatar direkt aus Home Assistant. Quelle sind die
+  `person.*`-Entities (geholt über die Core-API `GET /api/states` mit dem
+  Supervisor-Token). Reihenfolge der Avatar-Auflösung:
+  1. eigenes hochgeladenes Foto (Override) → 2. HA-Profilbild der
+  zugeordneten Person → 3. farbige Initialen. Genauso beim Namen:
+  manueller Override → HA-`friendly_name` → Username.
+- **Username ↔ HA-Person-Verknüpfung**: Beim Öffnen der App lernt das
+  Add-on aus dem Ingress-Header `X-Remote-User-Id` die HA-User-UUID und
+  merkt sie sich (`ha_user_map.json`). Fallback ohne gelernte UUID:
+  case-insensitiver Abgleich von `friendly_name` gegen den Username.
+- **Avatar-Proxy**: `GET /api/ha-users/avatar/:username` streamt das
+  HA-`entity_picture` über den Supervisor-Proxy (kein direkter Core-
+  Zugriff vom Browser). 404 → Frontend fällt automatisch auf Initialen
+  zurück.
+- **Graceful Degradation**: Ist HA / der Supervisor-Token nicht
+  erreichbar, bleibt alles funktionsfähig — es greifen Upload bzw.
+  Initialen wie bisher. Das manuelle Hochladen bleibt als Override
+  vollständig erhalten.
+- Admin-Debug: `GET /api/ha-users/debug` zeigt die geholten Personen und
+  die gelernte UUID-Zuordnung zur Kontrolle.
+
+## 0.17.0
+
+- **Avatare pro Benutzer**: Im Benutzer-Sheet kann jeder ein Foto aus
+  der Galerie hochladen — wird clientseitig auf 256×256 Quadrat
+  zugeschnitten, als JPEG (0.85) base64-kodiert und in
+  `user_settings.json` abgelegt (Cap: 300 KB). Ohne eigenes Bild gibt's
+  einen farbigen Initialen-Avatar, dessen Farbe deterministisch aus dem
+  Username gehasht wird (gleicher User = gleiche Farbe auf allen
+  Geräten).
+- **Live-Präsenz in Listen**: In der Detailansicht einer Liste und im
+  Sammel-Einkauf erscheinen oben rechts die Avatare aller Personen, die
+  *gerade jetzt* dieselbe Liste/Auswahl geöffnet haben (grüner Ring).
+  Heartbeat alle 20 s; Einträge verschwinden ~60 s nach Inaktivität.
+  Beispiel: Marc und Sarah sind gleichzeitig im Supermarkt — beide
+  sehen den Avatar des anderen und wissen, dass jemand parallel
+  einkauft.
+- Backend: neuer `/api/presence/:listId`-Endpoint (Heartbeat / Leave /
+  Snapshot), gated durch `listVisibleTo`. SSE-Event `presence:list`
+  wird scope-gefiltert an alle Listen-Berechtigten gepusht.
+- Avatare werden überall dort genutzt, wo bisher nur ein Textname stand
+  — Benutzer-Sheet (Liste + Detail) zeigt jetzt den Avatar mit.
+
+## 0.16.11
+
+- **Status-Kreis vor Artikeln entfernt**: Der leere Kreis links neben dem
+  Produktbild war reine Status-Anzeige (Klick-Target war eh die ganze
+  Zeile), sah aber aus wie eine Checkbox, die man drücken sollte. Raus
+  damit — gewonnener Platz geht an Name + Angebotszeile. Gekaufte Items
+  bleiben durch den durchgestrichenen Text erkennbar, „nicht
+  verfügbar"-Items durch das gelbe Badge.
+
 ## 0.16.10
 
 - **Angebote-Tab respektiert Listen-Sichtbarkeit**: Bisher bekamen alle

@@ -51,9 +51,22 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 
 ### Benutzer
 - Synchronisation der HA-Benutzer in die App.
-- Pro Benutzer: **Anzeigename** (überschreibt Username), Voice-Key,
-  Pushover-Device, Benachrichtigungs-Schalter (Mindestbestand / MHD /
-  Angebote) und Stumm-Listen je Bereich.
+- **HA-Profil-Integration**: Anzeigename und Avatar kommen automatisch
+  aus den `person.*`-Entities von Home Assistant (Core-API). Auflösung
+  in der Reihenfolge: 1. eigenes hochgeladenes Foto / manueller Name →
+  2. HA-Profilbild bzw. `friendly_name` der zugeordneten Person →
+  3. farbige Initialen bzw. Username. Die Username↔Person-Verknüpfung
+  wird aus dem Ingress-Header gelernt (Fallback: Namensabgleich). Fällt
+  HA aus, bleibt alles funktionsfähig (Upload/Initialen).
+- Pro Benutzer: **Anzeigename** (überschreibt HA/Username), **Avatar**
+  (Foto-Upload als Override, wird auf 256×256 verkleinert; ohne eigenes
+  Bild HA-Profilbild, sonst farbige Initialen mit deterministischer
+  Hash-Farbe), Voice-Key, Pushover-Device, Benachrichtigungs-Schalter
+  (Mindestbestand / MHD / Angebote) und Stumm-Listen je Bereich.
+- **Live-Präsenz**: In der Detailansicht einer Liste und im
+  Sammel-Einkauf wird oben angezeigt, wer aktuell gerade dieselbe
+  Liste/Auswahl offen hat (Avatare mit grünem Ring). Heartbeat alle
+  20 s, Eintrag verschwindet nach 60 s Inaktivität.
 
 ### Ansicht
 - **Dark Mode** in Einstellungen → Erscheinungsbild (Auto / Hell / Dunkel),
@@ -90,7 +103,7 @@ log_level: info
 Alle Daten werden im Add-on-eigenen `/data`-Volume als JSON gespeichert
 (`lists.json`, `items.json`, `products.json`, `pantries.json`,
 `pantry_items.json`, `categories.json`, `units.json`,
-`user_settings.json`, `app_settings.json`).
+`user_settings.json`, `app_settings.json`, `ha_user_map.json`).
 
 ## Source
 
