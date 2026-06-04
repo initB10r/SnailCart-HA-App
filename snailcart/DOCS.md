@@ -13,10 +13,22 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
   (Einfüge-Reihenfolge / Kategorie / A-Z).
 - Swipe-Aktionen: links → Einlagern, rechts → Löschen / „Nicht verfügbar".
 - **Sammel-Einkauf** über mehrere Listen gleichzeitig.
+- **Einkaufs-Quittung an Beitragende**: Beim Abschluss eines Einkaufs erhält
+  jede Person eine Push-Nachricht mit den von **ihr** auf die Liste gesetzten
+  und nun eingekauften Artikeln (der Einkäufer selbst wird nicht über seine
+  eigenen Artikel benachrichtigt). Pro Benutzer ab-/anschaltbar
+  („Erledigte Einkäufe"), läuft über das Pushover-Device.
 - Echtzeit-Updates via Server-Sent Events (mit Berechtigungs-Filter).
 
 ### Produkte & Barcode
 - Lokaler Produkt-Katalog mit Bild, Marke, Standard-Einheit, Kategorie.
+- Jedes Produkt merkt sich, **wer es angelegt hat** („angelegt von …").
+- **Archivieren statt Löschen**: Gelöschte Produkte werden archiviert und aus dem
+  Katalog ausgeblendet, bleiben aber für bestehende Listen-Artikel auflösbar.
+  Admins blenden sie über den Schalter **„Archivierte anzeigen"** wieder ein.
+- **Ad-hoc-Produkte** (automatisch beim manuellen Anlegen entstanden) sind im
+  Katalog ausgeblendet; eine Suche findet sie trotzdem, der Schalter **„Ad-hoc
+  anzeigen"** blendet sie dauerhaft ein.
 - **Barcode-Scan** (native iOS BarcodeDetector + ZXing-Fallback) mit
   freundlicher Fehlerführung, wenn die Kamera-Berechtigung fehlt.
 - Manueller EAN-Eingabe und Online-Suche.
@@ -88,8 +100,9 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 ## Konfiguration
 
 ```yaml
-admins:
-  - marc          # HA-Usernamen mit Admin-Rechten (case-insensitiv)
+admins: []        # HA-Usernamen mit Admin-Rechten (case-insensitiv).
+                  # Leer lassen -> der erste Benutzer, der die App öffnet
+                  # (= der Installierende), wird automatisch Admin.
 off_account:
   username: ""    # optional, für Beitragen an Open Food Facts
   password: ""

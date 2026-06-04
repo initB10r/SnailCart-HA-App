@@ -1,6 +1,6 @@
 {
   "name": "SnailCart",
-  "version": "0.20.1",
+  "version": "0.20.12",
   "slug": "snailcart",
   "image": "ghcr.io/initb10r/{arch}-snailcart",
   "description": "Einkaufslisten & Vorratsverwaltung mit Barcode-Scan (Open Food Facts)",
@@ -22,7 +22,7 @@
   "ports_description": { "8098/tcp": "Voice-API für Siri/Alexa (API-Key-geschützt) — nur freigeben, wenn genutzt" },
   "map": ["share:rw"],
   "options": {
-    "admins": ["marc"],
+    "admins": [],
     "off_account": {
       "username": "",
       "password": ""

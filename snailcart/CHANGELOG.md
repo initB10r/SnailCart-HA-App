@@ -1,5 +1,100 @@
 # Changelog
 
+## 0.20.12
+
+- **Eigener Benachrichtigungston für erledigte Einkäufe**: Die Einkaufs-Quittung
+  übergibt jetzt den konfigurierten Pushover-Sound. Neuer Auswahlpunkt
+  **„Erledigte Einkäufe"** unter Einstellungen → Töne (Standard: `cashregister`).
+
+## 0.20.11
+
+- **Notify-`target` als String statt Liste**: Der Pushover-Gerätename wird jetzt
+  als einfacher String übergeben (`target: iphoneMarc`), exakt wie beim Aufruf
+  aus HA-Automationen — eine Liste kann je nach Integration zeichenweise
+  fehl-iteriert werden. Baut auf dem Top-Level-`target`-Fix aus 0.20.10 auf.
+
+## 0.20.10
+
+- **Fix: Per-Benutzer-Benachrichtigungen gingen an alle Geräte**. `target`
+  (der Pushover-Gerätename) wurde fälschlich unter `data` verschachtelt statt
+  als Top-Level-Feld des Notify-Dienstes übergeben — Pushover ignorierte es
+  und sendete an **alle Geräte des Kontos**. Damit bekamen bei der
+  Einkaufs-Quittung (und schon vorher bei MHD/Angeboten) alle die Nachricht
+  statt nur die jeweils gemeinte Person. `target` liegt jetzt auf Top-Level,
+  `sound` bleibt in `data`.
+
+## 0.20.9
+
+- **Einkaufs-Benachrichtigung an Beitragende**: Beim Abschluss eines Einkaufs
+  bekommt jede Person eine Push-Nachricht mit *ihren* eingekauften Artikeln
+  („Marc hat eingekauft: • Milch (2 Stück) …"). Gruppiert nach `addedBy`; der
+  Einkäufer selbst wird nicht über die eigenen Artikel benachrichtigt. Läuft
+  über den per-Benutzer Pushover-Device; neuer Opt-out-Schalter
+  **„Erledigte Einkäufe"** in der Benutzerverwaltung (Standard: an).
+
+## 0.20.8
+
+- **Foto-Auswahl auf iOS repariert**: Der Produktfoto-Button öffnet jetzt das
+  iOS-Standard-Sheet *Foto aufnehmen / Foto auswählen / Datei auswählen* statt
+  zwangsweise die Kamera (`capture`-Attribut entfernt) — damit löst der Button
+  endlich auch das ein, was sein Label „Foto aufnehmen / wählen" verspricht.
+
+## 0.20.7
+
+- **Produkt-Modell erweitert** (`createdBy`, `adHoc`, `archived`): Produkte
+  merken sich jetzt, **wer sie angelegt hat** (HA-Benutzer), und tragen Flags für
+  Ad-hoc- und archivierte Produkte. Grundlage für das vollständig referenzierte
+  Modell.
+- **Soft-Delete**: Löschen eines Produkts archiviert es nur noch, statt es hart
+  zu entfernen. So bleiben Listen-Artikel, die darauf verweisen, weiterhin
+  auflösbar — kein Datenmüll. Admins können archivierte Produkte über einen
+  Schalter wieder einblenden (und per Bearbeiten reaktivieren).
+- **Katalog-Filter & Schalter**: Ad-hoc-Produkte sind im Katalog standardmäßig
+  ausgeblendet (eine Suche findet sie aber immer); ein Schalter **„Ad-hoc
+  anzeigen"** blendet sie für alle ein. Admins haben zusätzlich **„Archivierte
+  anzeigen"**. In der Liste zeigen Badges Ad-hoc/Archiviert sowie „angelegt von".
+
+## 0.20.6
+
+- **Marke aus dem Produkt aufgelöst**: Listen-Artikel zeigen die Marke jetzt aus
+  dem referenzierten Produkt (`productId`), nicht mehr nur aus dem beim
+  Hinzufügen gespeicherten Snapshot. Damit erscheint die Marke auch bei
+  Artikeln, die vor 0.20.4 angelegt wurden. Erster Schritt hin zum vollständig
+  referenzierten Modell (Produkt = einzige Wahrheit).
+
+## 0.20.5
+
+- **Fix: Admin nicht mehr fest auf „marc"**: Bisher war in der Standard-
+  konfiguration `marc` als Admin hinterlegt, der auf jedem frischen System
+  Admin-Rechte hatte. Jetzt ist `admins` standardmäßig leer und der **erste
+  Benutzer, der die App öffnet** (der Installierende) wird automatisch Admin und
+  in `/data` gemerkt. Werden in den Add-on-Optionen Admins konfiguriert, gelten
+  ausschließlich diese.
+
+## 0.20.4
+
+- **Marke bei Listen-Artikeln**: Die Marke wird jetzt auch in Einkaufslisten
+  angezeigt (Artikelzeile) und im Bearbeiten-Sheet gespeichert. Bisher wurde sie
+  nur am Produkt geführt und beim Hinzufügen zur Liste verworfen. Beim
+  Hinzufügen eines Produkts zur Liste werden zudem Marke, Kategorie, Bild und
+  Nutri-Score korrekt übernommen.
+
+## 0.20.3
+
+- **Fix: Nicht-Admins sahen nur UUIDs statt Namen**: In der Listenfreigabe (und
+  überall, wo fremde Benutzer auftauchen) bekamen normale Benutzer nur ihren
+  eigenen Eintrag vom Server — alle anderen UUIDs blieben unaufgelöst. Das
+  Benutzer-Roster mit Anzeigenamen wird jetzt an alle ausgeliefert; private
+  Einstellungen (Voice-Key, Avatar-Daten, Benachrichtigungen) bleiben weiterhin
+  nur für den jeweiligen Benutzer bzw. Admins sichtbar.
+
+## 0.20.2
+
+- **Barcode-Scan & Lookup beim Produkt-Anlegen**: Im Produktkatalog (+) kann ein
+  Barcode jetzt direkt gescannt oder manuell eingegeben und per Open-Food-Facts-
+  Lookup aufgelöst werden. Name, Marke, Bild, Nutri-Score und Kategorie-
+  Vorschläge werden automatisch vorbefüllt — wie schon beim Hinzufügen zur Liste.
+
 ## 0.20.1
 
 - **Fix Namensanzeige „Benutzername"**: Für HA-Personen, die SnailCart noch nie
