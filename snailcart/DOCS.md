@@ -22,6 +22,11 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 
 ### Produkte & Barcode
 - Lokaler Produkt-Katalog mit Bild, Marke, Standard-Einheit, Kategorie.
+- **Produkt = einzige Wahrheit**: Marke und Kategorie werden in Listen aus dem
+  referenzierten Produkt aufgelöst. Ändert man die Kategorie (oder Marke) an
+  einem Listen-Artikel, wird sie ins Produkt geschrieben und zieht sofort durch
+  alle Listen und den Katalog. Manuelle Artikel ohne Produkt behalten ihre
+  eigenen Werte.
 - Jedes Produkt merkt sich, **wer es angelegt hat** („angelegt von …").
 - **Archivieren statt Löschen**: Gelöschte Produkte werden archiviert und aus dem
   Katalog ausgeblendet, bleiben aber für bestehende Listen-Artikel auflösbar.

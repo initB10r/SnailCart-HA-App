@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.20.13
+
+- **Kategorie (und Marke) am Listen-Artikel schreiben jetzt ins Produkt durch**:
+  Ändert man die Kategorie eines produkt-verknüpften Artikels in einer
+  Einkaufsliste, wird sie im **Produkt** gespeichert (einzige Wahrheit) statt
+  redundant nur am Artikel. Die Kategorie wird in Listen jetzt – wie schon die
+  Marke – aus dem referenzierten Produkt aufgelöst; die Änderung zieht sofort
+  durch **alle** Listen und in den Katalog (per `product:updated` +
+  `item:updated` für alle betroffenen Artikel). Manuelle Artikel ohne Produkt
+  behalten ihre eigene Kategorie.
+
 ## 0.20.12
 
 - **Eigener Benachrichtigungston für erledigte Einkäufe**: Die Einkaufs-Quittung
