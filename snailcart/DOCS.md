@@ -13,6 +13,9 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
   (Einfüge-Reihenfolge / Kategorie / A-Z).
 - Swipe-Aktionen: links → Einlagern, rechts → Löschen / „Nicht verfügbar".
 - **Sammel-Einkauf** über mehrere Listen gleichzeitig.
+- **Angebots-Filter** pro Liste (3-fach-Umschalter: Alle / Ohne Angebote / Nur
+  Angebote) — blendet „nur im Angebot"-Artikel aus oder zeigt gezielt nur diese;
+  aktueller Modus an Icon + Farbe erkennbar, pro Benutzer gespeichert.
 - **Einkaufs-Quittung an Beitragende**: Beim Abschluss eines Einkaufs erhält
   jede Person eine Push-Nachricht mit den von **ihr** auf die Liste gesetzten
   und nun eingekauften Artikeln (der Einkäufer selbst wird nicht über seine
@@ -25,15 +28,18 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 - **Produkt = einzige Wahrheit**: Marke und Kategorie werden in Listen aus dem
   referenzierten Produkt aufgelöst. Ändert man die Kategorie (oder Marke) an
   einem Listen-Artikel, wird sie ins Produkt geschrieben und zieht sofort durch
-  alle Listen und den Katalog. Manuelle Artikel ohne Produkt behalten ihre
-  eigenen Werte.
+  alle Listen und den Katalog.
+- **Ein Dialog für Artikel und Produkte**: Hinzufügen und Bearbeiten laufen über
+  denselben Dialog (Tabs Scan / Suche / Manuell). Reine Katalog-Felder (Notizen,
+  Angebots-Einstellungen) liegen in einem **„Erweitert"-Aufklapper**. Ein neu
+  manuell angelegter Listen-Artikel wird automatisch zu einem **sichtbaren**
+  Katalog-Produkt; ein bereits vorhandenes Produkt wird wiederverwendet.
 - Jedes Produkt merkt sich, **wer es angelegt hat** („angelegt von …").
 - **Archivieren statt Löschen**: Gelöschte Produkte werden archiviert und aus dem
   Katalog ausgeblendet, bleiben aber für bestehende Listen-Artikel auflösbar.
   Admins blenden sie über den Schalter **„Archivierte anzeigen"** wieder ein.
-- **Ad-hoc-Produkte** (automatisch beim manuellen Anlegen entstanden) sind im
-  Katalog ausgeblendet; eine Suche findet sie trotzdem, der Schalter **„Ad-hoc
-  anzeigen"** blendet sie dauerhaft ein.
+- Ältere **Ad-hoc-Produkte** (vor 0.21.0 ausgeblendet angelegt) lassen sich über
+  den Schalter **„Ad-hoc anzeigen"** weiterhin einblenden.
 - **Barcode-Scan** (native iOS BarcodeDetector + ZXing-Fallback) mit
   freundlicher Fehlerführung, wenn die Kamera-Berechtigung fehlt.
 - Manueller EAN-Eingabe und Online-Suche.

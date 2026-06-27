@@ -1,5 +1,79 @@
 # Changelog
 
+## 0.21.4
+
+- **Angebots-Filter auch im Sammel-Einkauf**: Der 3-fach-Umschalter (Alle /
+  Ohne Angebote / Nur Angebote) steht jetzt auch in der listenübergreifenden
+  Einkaufsansicht zur Verfügung; Auswahl wird pro Gerät gespeichert.
+
+## 0.21.3
+
+- **Angebots-Filter (3-fach-Umschalter)** in der Listenansicht: **Alle** →
+  **Ohne Angebote** → **Nur Angebote**. Blendet Artikel, die nur im Angebot
+  gekauft werden sollen (`isOffer`), aus bzw. zeigt gezielt nur diese. Der
+  aktuelle Modus ist durch Icon, Text **und** Farbe sofort erkennbar (neutral /
+  blau / grün) und wird pro Liste und Benutzer gespeichert.
+
+## 0.21.2
+
+- **Autocomplete schließt nach Auswahl**: Beim Hinzufügen eines Artikels werden
+  die Treffer-Listen (lokaler Katalog + Online) ausgeblendet, sobald ein
+  Ergebnis gewählt wurde.
+- **Doppelte Produkte verhindert**: Beim Anlegen im Katalog werden bereits
+  vorhandene Produkte in der Trefferliste mit dem Badge **„im Katalog"**
+  markiert. Stimmt Name oder Barcode mit einem vorhandenen Produkt überein,
+  erscheint ein Hinweis und der **Anlegen-Button ist gesperrt**; per
+  **„Vorhandenes öffnen"** springt man direkt ins bestehende Produkt.
+
+## 0.21.1
+
+- **Suche und Manuell in einem Tab**: Der Hinzufügen-Dialog hat jetzt nur noch
+  zwei Tabs — **Scan** und **„Suche & Eingabe"**. Im kombinierten Tab steht das
+  Suchfeld (lokaler Katalog + Online) oben, das Eingabeformular direkt darunter;
+  ein Treffer füllt das Formular. Die separate „Manuell"-Lasche entfällt.
+
+## 0.21.0
+
+- **Einheitlicher Hinzufügen-/Bearbeiten-Dialog** für Artikel **und** Produkte.
+  `AddItemSheet`, `ProductCreateSheet` und `ProductDetailSheet` sind zu einer
+  Komponente `ProductFormSheet` zusammengelegt:
+  - Tabs **Scan / Suche / Manuell** überall beim Anlegen.
+  - Reine Katalog-Felder (Notizen, Angebots-Suchbegriff/-Modus, Angebots-Test)
+    stecken im **„Erweitert"-Aufklapper** — im Listen-Modus zugeklappt, im
+    Katalog-Modus offen.
+  - Eine einzige Verzweigung beim Speichern (`mode`): **Liste** → Artikel an die
+    Liste + Produkt (falls neu); **Katalog** → nur Produkt. Bearbeiten,
+    OFF-Aktualisierung, Angebote, Nährwerte, Löschen und „Zur Liste" laufen über
+    denselben Dialog.
+- **Neue Produkte aus dem Listen-Hinzufügen sind jetzt sichtbar** (`adHoc:false`)
+  statt ausgeblendet — manuell eingetippte Artikel landen direkt im Katalog
+  (gilt auch für den Voice-Endpoint).
+
+## 0.20.15
+
+- **Manuell hinzugefügte Artikel landen jetzt als Ad-hoc-Produkt im Katalog**.
+  Bisher wurde nur beim Barcode-Scan ein Produkt angelegt; ein manuell
+  eingetippter Artikel blieb produktlos und tauchte nie im Katalog auf. Jetzt
+  erzeugt `POST /api/items` (und der Voice-Endpoint) für produktlose Artikel ein
+  Ad-hoc-Produkt (vorhandenes mit gleichem Namen wird wiederverwendet) und
+  verknüpft den Artikel damit. Ad-hoc-Produkte sind im Katalog standardmäßig
+  ausgeblendet — über den Schalter **„Ad-hoc anzeigen"** bzw. die Suche sichtbar.
+
+## 0.20.14
+
+- **Fix: Einkauf abschließen scheiterte mit „forbidden" bei fremden Artikeln**.
+  Der Abschluss löschte jeden Artikel einzeln per `DELETE` — das verlangt aber
+  Eigentum am Artikel, sodass ein Nicht-Admin eine geteilte Liste mit fremden
+  Artikeln nicht abschließen konnte. Neuer **atomarer Endpoint
+  `POST /api/items/finish`**: Abschließen ist jetzt eine *Einkaufs*-Aktion,
+  berechtigt über die Listen-Sichtbarkeit statt über Artikel-Eigentum. Es werden
+  nur `bought`/`stored`-Artikel entfernt (und nur `unavailable` zurückgelegt),
+  sodass die Regel „fremde offene Artikel kann man nicht löschen" erhalten bleibt.
+- **Fix: Benachrichtigung wurde voreilig verschickt**. Die Einkaufs-Quittung
+  ging bisher *vor* dem Aufräumen raus — schlug der Abschluss fehl, war die
+  Nachricht trotzdem schon unterwegs. Jetzt wird **erst nach erfolgreichem
+  Abschluss** benachrichtigt.
+
 ## 0.20.13
 
 - **Kategorie (und Marke) am Listen-Artikel schreiben jetzt ins Produkt durch**:
