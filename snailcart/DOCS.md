@@ -25,15 +25,20 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 
 ### Produkte & Barcode
 - Lokaler Produkt-Katalog mit Bild, Marke, Standard-Einheit, Kategorie.
-- **Produkt = einzige Wahrheit**: Marke und Kategorie werden in Listen aus dem
-  referenzierten Produkt aufgelöst. Ändert man die Kategorie (oder Marke) an
-  einem Listen-Artikel, wird sie ins Produkt geschrieben und zieht sofort durch
-  alle Listen und den Katalog.
-- **Ein Dialog für Artikel und Produkte**: Hinzufügen und Bearbeiten laufen über
-  denselben Dialog (Tabs Scan / Suche / Manuell). Reine Katalog-Felder (Notizen,
-  Angebots-Einstellungen) liegen in einem **„Erweitert"-Aufklapper**. Ein neu
-  manuell angelegter Listen-Artikel wird automatisch zu einem **sichtbaren**
-  Katalog-Produkt; ein bereits vorhandenes Produkt wird wiederverwendet.
+- **Produkt = einzige Wahrheit**: Name, Marke, Kategorie und Foto werden in
+  Listen aus dem referenzierten Produkt aufgelöst. Ändert man eines davon an
+  einem Listen-Artikel, wird es ins Produkt geschrieben und zieht sofort durch
+  alle Listen und den Katalog — da Artikel per FK am Produkt hängen, können
+  diese Felder nicht abweichen.
+- **Ein Dialog, ein Screen**: Hinzufügen und Bearbeiten laufen über denselben
+  Dialog. Beim Hinzufügen sind Scan und Suche/Eingabe auf **einem** Screen
+  vereint — das **Namensfeld ist zugleich die Produktsuche** (lokale + Online-
+  Treffer erscheinen darunter), und ein **📷-Button direkt daneben** öffnet den
+  Scanner. Findet die Suche nichts, wird der getippte Name direkt gespeichert —
+  keine Doppel-Eingabe. Reine Katalog-Felder (Notizen, Angebots-Einstellungen)
+  liegen in einem **„Erweitert"-Aufklapper**. Ein neu manuell angelegter Listen-
+  Artikel wird automatisch zu einem **sichtbaren** Katalog-Produkt; ein bereits
+  vorhandenes Produkt wird wiederverwendet.
 - Jedes Produkt merkt sich, **wer es angelegt hat** („angelegt von …").
 - **Archivieren statt Löschen**: Gelöschte Produkte werden archiviert und aus dem
   Katalog ausgeblendet, bleiben aber für bestehende Listen-Artikel auflösbar.

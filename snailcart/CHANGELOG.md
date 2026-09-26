@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.22.2
+
+- **Lücke unter der Navigationsleiste in HA-Ingress entfernt**: Wie beim oberen
+  Rand wird jetzt auch der untere Safe-Area-Abstand (`safe-bottom` an der
+  BottomNav) nur noch standalone/PWA angewendet. In HA-Ingress reserviert HA den
+  unteren Bereich bereits — der zusätzliche Abstand ließ die Navi-Leiste mit
+  einer Leerfläche darunter „schweben".
+
+## 0.22.1
+
+- **Doppelter Rand oben in der HA-Ingress-Ansicht entfernt**: Der obere
+  Safe-Area-Abstand (`safe-top`) wird nur noch angewendet, wenn die App
+  eigenständig (PWA/Browser) läuft. In HA-Ingress (iframe) setzt Home Assistant
+  seine Kopfzeile bereits unter dem Notch — der zusätzliche Abstand entfiel als
+  große Lücke zwischen HA-Kopf und Inhalt. Erkennung über `window.self !==
+  window.top` (cross-origin-sicher).
+
+## 0.22.0
+
+- **Ein Screen zum Hinzufügen — kein Tab-Wechsel mehr**: Beim Anlegen von
+  Artikeln bzw. Katalog-Produkten sind **Scan** und **Suche & Eingabe** jetzt
+  auf einem einzigen Screen vereint (die Tabs „Scan"/„Suche & Eingabe" entfallen).
+- **Name = Suchfeld**: Das Namensfeld dient zugleich als Produktsuche. Während
+  des Tippens erscheinen lokale Katalog- und (auf Knopfdruck) Online-Treffer
+  direkt darunter. Wird nichts gefunden, steht der getippte Name bereits im Feld
+  und kann **ohne erneute Eingabe** gespeichert werden.
+- **Scan-Button direkt hinter dem Namensfeld**: Ein 📷-Button neben dem Namen
+  öffnet den Inline-Scanner; ein Treffer füllt das Formular. Manuelles Tippen des
+  Namens löst eine zuvor per Scan/Auswahl verknüpfte Produktreferenz wieder, damit
+  gespeichert wird, was im Feld steht.
+
+## 0.21.5
+
+- **Name & Foto folgen jetzt auch dem Produkt (FK-Konsistenz)**: Ändert man an
+  einem Listen-Artikel den **Namen** oder das **Foto**, wird das — wie schon
+  Marke und Kategorie — ins referenzierte Produkt geschrieben und in allen
+  Listen und im Katalog aufgelöst. Da Artikel per `productId` (FK) am Produkt
+  hängen, können diese Felder nicht mehr voneinander abweichen
+  (`resolveItem` + `CATALOG_WRITE_THROUGH` um `name`/`imageUrl` erweitert).
+
 ## 0.21.4
 
 - **Angebots-Filter auch im Sammel-Einkauf**: Der 3-fach-Umschalter (Alle /
