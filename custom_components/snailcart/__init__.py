@@ -7,10 +7,13 @@ Adding and checking off items happens in SnailCart itself (app or Siri).
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, SupportsResponse
@@ -18,6 +21,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.loader import async_get_integration
 
 from .api import Forbidden, NotFound, SnailCartClient, SnailCartError
 from .const import CONF_API_KEY, DOMAIN, OPEN_STATES
@@ -25,6 +29,12 @@ from .coordinator import SnailCartCoordinator
 
 PLATFORMS = [Platform.TODO]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+# Dashboard card shipped with the integration and loaded on every HA page, so
+# no Lovelace resource is needed. The version query busts the browser cache
+# (wall iPads) whenever the integration is updated.
+CARD_URL = "/snailcart_static/snail-cart-card.js"
+CARD_FILE = Path(__file__).parent / "frontend" / "snail-cart-card.js"
 
 type SnailCartConfigEntry = ConfigEntry[SnailCartCoordinator]
 
@@ -39,7 +49,14 @@ CANCEL_DELETE_SCHEMA = vol.Schema({vol.Required("item_id"): cv.string})
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register the integration's services once."""
+    """Register the integration's services and the dashboard card once."""
+
+    integration = await async_get_integration(hass, DOMAIN)
+    if hass.http is not None:
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig(CARD_URL, str(CARD_FILE), cache_headers=True)]
+        )
+        add_extra_js_url(hass, f"{CARD_URL}?v={integration.version}")
 
     async def get_list(call: ServiceCall) -> ServiceResponse:
         entity_id: str = call.data["entity_id"]

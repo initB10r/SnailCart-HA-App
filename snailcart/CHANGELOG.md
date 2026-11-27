@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.26.0
+
+- **Dashboard-Karte wird mit der Integration ausgeliefert**: Die Karte
+  `custom:snail-cart-card` (kompakte Kachel oder Liste nach Kategorien, Fenster
+  mit Bildern, Notizen, Löschen und Löschvormerkung) gehört jetzt zur
+  Integration und wird automatisch geladen. Ein Lovelace-Ressourceneintrag
+  ist nicht nötig; nach einem Update laden auch die Wand-iPads die neue
+  Fassung (Versionsparameter gegen den Browser-Cache).
+- Die Karte meldet nach dem Löschen genau, ob der Artikel gelöscht oder nur
+  zum Löschen vorgemerkt wurde.
+- Das Fenster der Karte funktioniert auch auf älteren iPads (vor iOS 14.5).
+- Der Demo-Modus der Karte entfällt.
+
 ## 0.25.3
 
 - **Versionsnummern in Home Assistant sichtbar**: Die Integration legt ein

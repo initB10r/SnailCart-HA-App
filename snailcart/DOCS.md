@@ -117,6 +117,9 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 - Dienste: `snailcart.get_list` (Detaildaten für Dashboard-Karten: Menge,
   Kategorie mit Icon, Bild, Produktnotizen, wer eingetragen hat) und
   `snailcart.cancel_delete` (Vormerkung zurücknehmen).
+- **Dashboard-Karte** `custom:snail-cart-card` wird mit der Integration
+  ausgeliefert und automatisch geladen (Optionen: `entity`, `title`,
+  `layout: tiles|list`).
 - Änderungen erscheinen per Push in etwa einer Sekunde in HA.
 - **Sicherheit**: eigener interner Port 8097 (siehe Ports), Schlüssel nur als
   Hash gespeichert und einmalig angezeigt (Einstellungen →
