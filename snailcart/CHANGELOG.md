@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.25.3
+
+- **Versionsnummern in Home Assistant sichtbar**: Die Integration legt ein
+  Dienst-Gerät „SnailCart“ an. Unter Einstellungen → Geräte & Dienste →
+  SnailCart steht dort die Add-on-Version (Firmware) und die Version der
+  Integration (Modell). Nach einem Add-on-Update wird die Version automatisch
+  aktualisiert.
+- **Marketplace (HACS) zeigt Versionen statt Commit-Kürzeln**: Beim Release
+  bekommt das öffentliche Repository jetzt ein eigenes Release mit der
+  Versionsnummer.
+
 ## 0.25.2
 
 - **Kleine Vorschaubilder für Home Assistant**: Eigene Fotos gehen nicht mehr

@@ -69,6 +69,7 @@ class SnailCartTodoList(CoordinatorEntity[SnailCartCoordinator], TodoListEntity)
         super().__init__(coordinator)
         self._list_id = list_id
         self._attr_unique_id = f"{entry.entry_id}_{list_id}"
+        self._attr_device_info = coordinator.device_info
 
     @property
     def _detail(self) -> dict[str, Any] | None:

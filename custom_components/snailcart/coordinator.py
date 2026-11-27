@@ -10,7 +10,10 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.debounce import Debouncer
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+from homeassistant.loader import async_get_integration
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import CannotConnect, InvalidAuth, NotFound, SnailCartClient, SnailCartError
@@ -36,6 +39,42 @@ class SnailCartCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
             request_refresh_debouncer=Debouncer(hass, _LOGGER, cooldown=1.0, immediate=True),
         )
         self.client = client
+        self.server_version: str | None = None
+        self.integration_version: str | None = None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """One service device per entry; shows both versions in the HA UI."""
+        assert self.config_entry is not None
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.config_entry.entry_id)},
+            name="SnailCart",
+            manufacturer="SnailCart",
+            model=f"Integration {self.integration_version or '?'}",
+            sw_version=self.server_version,
+            entry_type=DeviceEntryType.SERVICE,
+        )
+
+    async def async_update_versions(self) -> None:
+        """Read the add-on version and the installed integration version."""
+        if self.integration_version is None:
+            integration = await async_get_integration(self.hass, DOMAIN)
+            self.integration_version = str(integration.version) if integration.version else None
+        try:
+            info = await self.client.info()
+        except SnailCartError as err:
+            _LOGGER.debug("SnailCart version not readable: %s", err)
+            return
+        version = info.get("version")
+        if not isinstance(version, str) or version == self.server_version:
+            return
+        self.server_version = version[:32]
+        if self.config_entry is not None:
+            device = dr.async_get(self.hass).async_get_device({(DOMAIN, self.config_entry.entry_id)})
+            if device is not None:
+                dr.async_get(self.hass).async_update_device(
+                    device.id, sw_version=self.server_version, model=self.device_info["model"]
+                )
 
     async def _async_update_data(self) -> dict[str, dict[str, Any]]:
         try:
@@ -88,7 +127,9 @@ class SnailCartCoordinator(DataUpdateCoordinator[dict[str, dict[str, Any]]]):
                 _LOGGER.debug("SnailCart event stream lost: %s", err)
             except SnailCartError as err:
                 _LOGGER.debug("SnailCart event stream error: %s", err)
-            # Catch up on anything missed while disconnected, then retry.
+            # Catch up on anything missed while disconnected (an add-on update
+            # restarts it, so also re-read its version), then retry.
+            await self.async_update_versions()
             await self.async_request_refresh()
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, 60)

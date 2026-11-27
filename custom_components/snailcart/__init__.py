@@ -86,6 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SnailCartConfigEntry) ->
         entry.data[CONF_API_KEY],
     )
     coordinator = SnailCartCoordinator(hass, entry, client)
+    await coordinator.async_update_versions()
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 
