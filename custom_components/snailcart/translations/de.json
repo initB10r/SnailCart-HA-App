@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SnailCart verbinden",
+        "description": "Host, Port und Schlüssel stehen in SnailCart unter Einstellungen → Home Assistant-Integration.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "api_key": "Schlüssel"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Neuer SnailCart-Schlüssel",
+        "description": "SnailCart hat den Schlüssel abgelehnt. Erzeuge in SnailCart (Einstellungen → Home Assistant-Integration) einen neuen und trage ihn hier ein.",
+        "data": {
+          "api_key": "Schlüssel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "SnailCart ist nicht erreichbar. Host und Port prüfen.",
+      "invalid_auth": "Der Schlüssel wurde abgelehnt.",
+      "unsupported_version": "Diese SnailCart-Version wird von der Integration nicht unterstützt. Bitte beides aktualisieren.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Dieses SnailCart ist bereits eingerichtet.",
+      "reauth_successful": "Schlüssel aktualisiert."
+    }
+  },
+  "services": {
+    "get_list": {
+      "name": "Liste abrufen",
+      "description": "Liefert die Artikel einer SnailCart-Liste mit Menge, Kategorie, Bild und Notizen.",
+      "fields": {
+        "entity_id": { "name": "Liste", "description": "SnailCart-Todo-Entität." },
+        "include_done": { "name": "Erledigte einschließen", "description": "Auch gekaufte/eingelagerte Artikel liefern." },
+        "include_pending": { "name": "Vorgemerkte einschließen", "description": "Auch zum Löschen vorgemerkte Artikel liefern." }
+      }
+    },
+    "cancel_delete": {
+      "name": "Löschvormerkung zurücknehmen",
+      "description": "Nimmt eine offene Löschvormerkung für einen Artikel zurück.",
+      "fields": {
+        "item_id": { "name": "Artikel-ID", "description": "Die ID (uid) des Artikels." }
+      }
+    }
+  }
+}

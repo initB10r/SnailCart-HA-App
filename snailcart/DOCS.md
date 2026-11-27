@@ -12,6 +12,13 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 - Drag-and-drop Sortierung pro Benutzer, individuelle Sortier-Modi
   (Einfüge-Reihenfolge / Kategorie / A-Z).
 - Swipe-Aktionen: links → Einlagern, rechts → Löschen / „Nicht verfügbar".
+- **Löschvormerkung**: Endgültig löschen darf nur, wer den Artikel eingetragen
+  hat (oder ein Admin). Alle anderen merken das Löschen nur vor: Der Artikel
+  bleibt auf der Liste, trägt den Hinweis „… möchte das entfernen", und der
+  Ersteller wählt **Löschen** oder **Behalten**. Wer vorgemerkt hat, kann den
+  Wunsch **zurücknehmen**. Wird derselbe Artikel erneut eingetragen, verfällt
+  die Vormerkung. Der Ersteller bekommt eine Push-Nachricht (pro Benutzer
+  abschaltbar: „Löschwünsche für meine Artikel").
 - **Sammel-Einkauf** über mehrere Listen gleichzeitig.
 - **Angebots-Filter** pro Liste (3-fach-Umschalter: Alle / Ohne Angebote / Nur
   Angebote) — blendet „nur im Angebot"-Artikel aus oder zeigt gezielt nur diese;
@@ -70,12 +77,52 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 - Push-Benachrichtigung an Listen-Owner und sharedWith bei neuen Angeboten.
 
 ### Voice-API (Siri / Alexa)
-- Eigener Endpoint (`/api/voice/add`) auf Port 8098, ausschließlich
-  per `X-API-Key` authentifiziert — sicher freigebbar via cloudflared.
+- Eigener Listener auf Port 8098, ausschließlich per `X-API-Key`
+  authentifiziert — sicher freigebbar via cloudflared.
 - Pro Nutzer eigener Voice-Key (in der App generierbar).
-- **Mehrrunden-Rückfragen**: „In welche Liste?" / „Welche Variante?".
+- **Gesprächs-Endpoint `/api/voice/converse`** (ab 0.24.0, empfohlen): SnailCart
+  führt das ganze Gespräch, der Siri-Kurzbefehl ist nur eine Schleife.
+  Anfrage `{ text, session }`, Antwort immer
+  `{ next: "ask"|"end", speak, session, options }`. Bei `ask` stellt der
+  Kurzbefehl `speak` als Frage und schickt die Antwort mit derselben `session`
+  zurück, bei `end` sagt er `speak` und hört auf. Neue Rückfragen brauchen
+  keine Änderung am Kurzbefehl. Bauanleitung: `docs/siri-kurzbefehl.md` im
+  Repository.
+  - Rückfragen: „Auf welche Liste?", „Welche genau: Vollmilch, fettarme Milch
+    oder Hafermilch?", „… kenne ich noch nicht. Trotzdem auf die Liste?".
+  - Antworten werden frei erkannt: Name, Teil des Namens, „die zweite",
+    „die letzte", „ja"/„nein", „abbrechen".
+  - Nennt man bei „Welche genau?" etwas anderes, wird danach gesucht.
+  - Menge und Einheit am Satzanfang: „2 Liter Milch", „drei Packungen Nudeln".
+  - Gespräche gelten 5 Minuten, sind an den Benutzer des Keys gebunden und
+    nur einmal verwendbar.
 - Erkennt Listen am Besitzer-Namen (z. B. „Jacobs Einkaufsliste").
-- Bestätigung vor dem Anlegen unbekannter Produkte (Ja/Nein).
+- Der ältere Endpoint `/api/voice/add` bleibt für bestehende Kurzbefehle
+  erhalten.
+
+### Home Assistant-Integration (Dashboard)
+- Eigene HA-Integration `snailcart`, installierbar über den **HA-Marketplace
+  (HACS)** als benutzerdefiniertes Repository
+  `https://github.com/initB10r/SnailCart-HA-App` vom Typ **Integration**.
+  Schritt-für-Schritt-Anleitung direkt in SnailCart unter Einstellungen →
+  Home Assistant-Integration.
+- **Nur freigegebene Listen**: Pro Liste schaltet Besitzer oder Admin unter
+  „Liste verwalten“ → **In Home Assistant anzeigen** frei. Nur diese Listen
+  erscheinen in HA, dort aber für alle HA-Benutzer sichtbar.
+- In HA entsteht pro Liste eine `todo.*`-Entität. Der Zustand ist die Zahl der
+  offenen Artikel. Zum Löschen vorgemerkte Artikel sind ausgeblendet.
+- **Nur ansehen und löschen**: Hinzufügen, Abhaken und Aufräumen geschieht in
+  SnailCart. Löschen aus HA folgt der Löschvormerkung (fremde Artikel werden
+  nur vorgemerkt), handelnde Person ist der in HA angemeldete Benutzer.
+- Dienste: `snailcart.get_list` (Detaildaten für Dashboard-Karten: Menge,
+  Kategorie mit Icon, Bild, Produktnotizen, wer eingetragen hat) und
+  `snailcart.cancel_delete` (Vormerkung zurücknehmen).
+- Änderungen erscheinen per Push in etwa einer Sekunde in HA.
+- **Sicherheit**: eigener interner Port 8097 (siehe Ports), Schlüssel nur als
+  Hash gespeichert und einmalig angezeigt (Einstellungen →
+  Home Assistant-Integration, nur Admin; erneuern widerruft den alten sofort),
+  minimale Rechte, Bild-URLs nur `https:` oder eingebettete Bilder.
+  Admin-Rechte werden nie aus HA übernommen.
 
 ### Benutzer
 - **Identität = HA-User-UUID**: Intern wird jeder Benutzer ausschließlich
@@ -102,7 +149,8 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
   (Foto-Upload als Override, wird auf 256×256 verkleinert; ohne eigenes
   Bild HA-Profilbild, sonst farbige Initialen mit deterministischer
   Hash-Farbe), Voice-Key, Pushover-Device, Benachrichtigungs-Schalter
-  (Mindestbestand / MHD / Angebote) und Stumm-Listen je Bereich.
+  (Mindestbestand / MHD / Angebote / Erledigte Einkäufe / Löschwünsche) und
+  Stumm-Listen je Bereich.
 - **Live-Präsenz**: In der Detailansicht einer Liste und im
   Sammel-Einkauf wird oben angezeigt, wer aktuell gerade dieselbe
   Liste/Auswahl offen hat (Avatare mit grünem Ring). Heartbeat alle
@@ -138,6 +186,10 @@ log_level: info
   wenn genutzt** und am besten via cloudflared exposen — der Listener
   authentifiziert ausschließlich per X-API-Key und ignoriert
   X-Remote-User.
+- **8097/tcp** (nur intern, **nicht** freigeben): API für die
+  Home-Assistant-Integration. Wird bewusst nicht als Host-Port veröffentlicht
+  und darf nicht über cloudflared laufen. Erreichbar nur im
+  Supervisor-Netz unter `<Add-on-Hostname>:8097`.
 
 ## Daten
 

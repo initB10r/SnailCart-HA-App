@@ -1,5 +1,68 @@
 # Changelog
 
+## 0.25.1
+
+- **Integration über den HA-Marketplace (HACS) installierbar**: Die
+  Home-Assistant-Integration wird beim Release ins öffentliche Repository
+  `SnailCart-HA-App` übernommen und lässt sich dort als benutzerdefiniertes
+  Repository (Typ „Integration“) herunterladen. Updates zeigt der Marketplace
+  automatisch an, manuelles Kopieren entfällt.
+- **Anleitung in der App**: Unter Einstellungen → Home Assistant-Integration
+  steht jetzt eine Schritt-für-Schritt-Anleitung mit dem passenden Host und
+  Port.
+
+## 0.25.0
+
+- **Home Assistant-Integration fürs Dashboard**: Neue HA-Integration
+  `snailcart` (Ordner `custom_components/snailcart`). Pro freigegebener Liste
+  eine `todo`-Entität, Dienst `snailcart.get_list` mit allen Daten für eine
+  eigene Dashboard-Karte (Menge, Kategorie mit Icon, Bild, Produktnotizen, wer
+  eingetragen hat), Löschen inklusive Löschvormerkung, `snailcart.cancel_delete`
+  zum Zurücknehmen. Änderungen kommen per Push in etwa einer Sekunde an.
+  Einrichtung: `docs/ha-integration-einrichtung.md`.
+- **Liste für Home Assistant freigeben**: neuer Schalter unter „Liste
+  verwalten“ (Besitzer oder Admin). Ohne Freigabe sieht HA die Liste nicht.
+- **Schlüsselverwaltung** unter Einstellungen → Home Assistant-Integration
+  (nur Admin): Schlüssel erzeugen, erneuern, widerrufen. Er wird nur einmal
+  angezeigt und nur als Hash gespeichert.
+- **Sicherheit**: Die Integrations-API läuft auf einem eigenen, nur intern
+  erreichbaren Port (8097, nicht veröffentlicht, nicht über cloudflared), hat
+  minimale Rechte (nur freigegebene Listen lesen, löschen bzw. vormerken) und
+  übernimmt nie Admin-Rechte aus HA.
+
+## 0.24.0
+
+- **Siri-Gespräch mit Rückfragen (neu: `/api/voice/converse`)**: SnailCart führt
+  jetzt das komplette Gespräch, der Kurzbefehl ist nur noch eine einfache
+  Schleife („fragen → schicken → antworten"). Rückfragen wie „Welche genau:
+  Vollmilch, fettarme Milch oder Hafermilch?" funktionieren beliebig tief, und
+  neue Fragen erfordern keine Änderung am Kurzbefehl mehr. Bauanleitung in
+  `docs/siri-kurzbefehl.md`.
+- Antworten werden frei erkannt (Name, Teil des Namens, „die zweite", „ja",
+  „nein", „abbrechen"). Menge und Einheit am Satzanfang werden übernommen
+  („2 Liter Milch").
+- Varianten werden nach Kaufhäufigkeit sortiert vorgelesen (höchstens fünf).
+- Sicherheit: Gespräche sind an den Benutzer des Voice-Keys gebunden, nur
+  einmal verwendbar, laufen nach 5 Minuten ab und sind in der Anzahl begrenzt.
+- Der bisherige Endpoint `/api/voice/add` funktioniert weiter.
+
+## 0.23.0
+
+- **Löschvormerkung für fremde Artikel**: Wer einen Artikel löschen möchte,
+  den jemand anderes eingetragen hat, merkt ihn jetzt zum Löschen vor, statt
+  eine Fehlermeldung zu bekommen. Der Artikel bleibt auf der Liste und zeigt
+  „… möchte das entfernen". Der Ersteller (oder ein Admin) wählt **Löschen**
+  oder **Behalten**, wer vorgemerkt hat, kann den Wunsch **zurücknehmen**.
+  Wird derselbe Artikel erneut eingetragen (App oder Siri), verfällt die
+  Vormerkung automatisch.
+- **Push an den Ersteller** bei einem Löschwunsch (Pushover). Pro Benutzer
+  abschaltbar unter Benutzer → Benachrichtigungen („Löschwünsche für meine
+  Artikel"), Ton global einstellbar.
+- **Sicherheit**: Per Siri hinzugefügte Artikel wurden per Live-Update an alle
+  verbundenen Benutzer geschickt, auch an solche ohne Zugriff auf die Liste.
+  Jetzt erhalten nur noch Berechtigte diese Updates. Löschen prüft zudem jetzt
+  immer, ob man die Liste überhaupt sehen darf.
+
 ## 0.22.2
 
 - **Lücke unter der Navigationsleiste in HA-Ingress entfernt**: Wie beim oberen

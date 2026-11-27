@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect SnailCart",
+        "description": "Host, port and key are shown in SnailCart under Settings → Home Assistant integration.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "api_key": "Key"
+        }
+      },
+      "reauth_confirm": {
+        "title": "New SnailCart key",
+        "description": "SnailCart rejected the key. Create a new one in SnailCart (Settings → Home Assistant integration) and enter it here.",
+        "data": {
+          "api_key": "Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "SnailCart is not reachable. Check host and port.",
+      "invalid_auth": "The key was rejected.",
+      "unsupported_version": "This SnailCart version is not supported by the integration. Update both.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This SnailCart is already set up.",
+      "reauth_successful": "Key updated."
+    }
+  },
+  "services": {
+    "get_list": {
+      "name": "Get list",
+      "description": "Returns the items of a SnailCart list with quantity, category, image and notes.",
+      "fields": {
+        "entity_id": { "name": "List", "description": "SnailCart todo entity." },
+        "include_done": { "name": "Include done", "description": "Also return bought/stored items." },
+        "include_pending": { "name": "Include flagged", "description": "Also return items flagged for deletion." }
+      }
+    },
+    "cancel_delete": {
+      "name": "Withdraw delete request",
+      "description": "Withdraws a pending delete request for an item.",
+      "fields": {
+        "item_id": { "name": "Item ID", "description": "The item's id (uid)." }
+      }
+    }
+  }
+}

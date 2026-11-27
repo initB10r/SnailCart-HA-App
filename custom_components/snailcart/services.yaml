@@ -1,0 +1,23 @@
+get_list:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: snailcart
+          domain: todo
+    include_done:
+      default: false
+      selector:
+        boolean:
+    include_pending:
+      default: false
+      selector:
+        boolean:
+
+cancel_delete:
+  fields:
+    item_id:
+      required: true
+      selector:
+        text:
