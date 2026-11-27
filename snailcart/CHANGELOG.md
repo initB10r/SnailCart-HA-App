@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.2
+
+- **Kleine Vorschaubilder für Home Assistant**: Eigene Fotos gehen nicht mehr
+  in voller Größe an HA, sondern als verkleinertes JPEG (max. 192 px, etwa
+  10 KB statt bis zu 300 KB). Dashboards laden dadurch deutlich schneller.
+  Open-Food-Facts-Bilder bleiben Links. Andere eingebettete Formate gehen nur
+  noch durch, wenn sie klein sind.
+- **Sicherheitsupdates der Server-Abhängigkeiten** (Express, body-parser,
+  proxy-addr, morgan).
+
 ## 0.25.1
 
 - **Integration über den HA-Marketplace (HACS) installierbar**: Die

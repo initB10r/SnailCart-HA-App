@@ -121,7 +121,8 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
 - **Sicherheit**: eigener interner Port 8097 (siehe Ports), Schlüssel nur als
   Hash gespeichert und einmalig angezeigt (Einstellungen →
   Home Assistant-Integration, nur Admin; erneuern widerruft den alten sofort),
-  minimale Rechte, Bild-URLs nur `https:` oder eingebettete Bilder.
+  minimale Rechte, Bild-URLs nur `https:` oder eingebettete Bilder; eigene
+  Fotos gehen als kleines Vorschaubild (max. 192 px) an HA.
   Admin-Rechte werden nie aus HA übernommen.
 
 ### Benutzer
