@@ -2,9 +2,10 @@
  * SnailCart-Integration (ab 0.26.0). Ursprünglich v1.2 von der Dashboard-KI.
  *
  * type: custom:snail-cart-card
- * entity: todo.snailcart_einkaufsliste   (für HA freigegebene SnailCart-Liste)
- * title: Einkaufsliste
+ * entity: todo.snailcart_einkaufsliste   (optional; leer = erste für HA freigegebene SnailCart-Liste)
+ * title: Einkaufsliste                   (optional)
  * layout: tiles (Standard, Bildleiste) | list (nach Kategorie, Höhe über grid_options.rows)
+ * Alles auch im visuellen Editor einstellbar (getConfigForm).
  *
  * Lesen: snailcart.get_list (return_response), Live: todo/item/subscribe → neu laden
  * Schreiben: nur todo.remove_item (löschen bzw. Löschvormerkung) und snailcart.cancel_delete
@@ -25,21 +26,59 @@ const CART_CSS = `
   .pill{font-size:12px;padding:2px 9px;border-radius:10px;background:var(--secondary-background-color);color:var(--secondary-text-color);white-space:nowrap}
   .pill.on{background:var(--primary-color);color:var(--text-primary-color,#fff)}`;
 
+const LAYOUTS = ["tiles", "list"];
+function snailTodos(h) {                              // todo-Entitäten der SnailCart-Integration
+  const ents = (h && h.entities) || {};
+  return Object.keys(ents).filter(id => id.startsWith("todo.") && ents[id] && ents[id].platform === "snailcart").sort();
+}
+
 class SnailCartCard extends HTMLElement {
+  static getStubConfig(hass) {
+    const id = snailTodos(hass)[0];
+    return id ? { entity: id } : {};
+  }
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: "entity", selector: { entity: { filter: { domain: "todo", integration: "snailcart" } } } },
+        { name: "title", selector: { text: {} } },
+        { name: "layout", selector: { select: { mode: "dropdown", options: [
+          { value: "tiles", label: "Kacheln mit Bildern" },
+          { value: "list", label: "Liste nach Kategorien" },
+        ] } } },
+      ],
+      computeLabel: s => ({ entity: "SnailCart-Liste", title: "Titel", layout: "Darstellung" })[s.name],
+      computeHelper: s => ({
+        entity: "Leer = erste Liste, die in SnailCart für Home Assistant freigegeben ist.",
+        title: "Leer = „Einkaufsliste“.",
+        layout: "Bei „Liste“ die Höhe über die Zeilen im Layout-Tab einstellen.",
+      })[s.name],
+    };
+  }
   setConfig(c) {
-    if (!c.entity) throw new Error("snail-cart-card: 'entity' angeben (z. B. todo.einkaufsliste)");
-    this._c = Object.assign({ title: "Einkaufsliste" }, c);
+    c = c || {};
+    if (c.entity != null && c.entity !== "" && (typeof c.entity !== "string" || !/^todo\.[a-z0-9_]+$/.test(c.entity)))
+      throw new Error("snail-cart-card: 'entity' muss eine todo-Entität sein (z. B. todo.snailcart_einkaufsliste)");
+    if (c.layout != null && !LAYOUTS.includes(c.layout)) throw new Error("snail-cart-card: 'layout' ist 'tiles' oder 'list'");
+    if (c.title != null && typeof c.title !== "string") throw new Error("snail-cart-card: 'title' muss Text sein");
+    this._close(true); this._unsubscribe(); clearTimeout(this._rt);
+    this._c = Object.assign({}, c, { title: c.title || "Einkaufsliste", layout: c.layout || "tiles" });
+    this._ent = undefined; this._stamp = undefined;
     this._data = null; this._err = null;
     this._opt = { pending: false, done: false, sort: "name" };
     this._open_notes = new Set(); this._arm = null;
     this._built = false;
+    if (this._h) this.hass = this._h;                 // Editor-Vorschau: sofort neu aufbauen
   }
   set hass(h) {
-    const first = !this._h; this._h = h;
-    if (!this._built) this._build();
-    const st = h.states[this._c.entity];
+    this._h = h;
+    const ent = this._c.entity || snailTodos(h)[0] || null;
+    let force = false;
+    if (ent !== this._ent) { this._unsubscribe(); this._ent = ent; this._data = null; this._err = null; force = true; }
+    if (!this._built) { this._build(); force = true; }
+    const st = ent && h.states[ent];
     const stamp = st ? st.last_updated : "-";
-    if (first || stamp !== this._stamp) { this._stamp = stamp; this._reload(); }
+    if (force || stamp !== this._stamp) { this._stamp = stamp; this._reload(); }
     if (!this._unsub && this.isConnected) this._subscribe();
   }
   connectedCallback() { if (this._h && !this._unsub) this._subscribe(); }
@@ -48,12 +87,29 @@ class SnailCartCard extends HTMLElement {
   getGridOptions() { return { columns: 12, rows: 3, min_columns: 6 }; }
 
   /* ---------- Daten ---------- */
-  _mode() { return this._h.services?.snailcart?.get_list ? "live" : "missing"; }
+  _mode() {
+    if (!this._h.services?.snailcart?.get_list) return "missing";
+    if (!this._ent) return "nolist";
+    const reg = this._h.entities && this._h.entities[this._ent];
+    if (reg && reg.platform !== "snailcart") return "foreign";
+    return "live";
+  }
+  _problem() {                                        // [Icon, Titel, Text] oder null
+    switch (this._mode()) {
+      case "missing": return ["mdi:puzzle-outline", "SnailCart ist noch nicht verbunden", "Sobald die SnailCart-Integration installiert ist, erscheint hier die Einkaufsliste."];
+      case "nolist": return ["mdi:playlist-remove", "Keine SnailCart-Liste freigegeben", "In SnailCart bei einer Liste „In Home Assistant anzeigen“ einschalten."];
+      case "foreign": return ["mdi:alert-circle-outline", "Keine SnailCart-Liste", `${this._ent} gehört nicht zu SnailCart. Bitte in der Karte eine SnailCart-Liste wählen.`];
+    }
+    if (this._err && !this._data) return ["mdi:alert-circle-outline", "Liste konnte nicht geladen werden", this._err];
+    return null;
+  }
   async _subscribe() {
     if (this._mode() !== "live" || this._subbing) return;
+    const ent = this._ent;
     this._subbing = true;
     try {
-      this._unsub = await this._h.connection.subscribeMessage(() => this._reload(), { type: "todo/item/subscribe", entity_id: this._c.entity });
+      const unsub = await this._h.connection.subscribeMessage(() => this._reload(), { type: "todo/item/subscribe", entity_id: ent });
+      if (ent === this._ent && this.isConnected) this._unsub = unsub; else unsub();   // Entität inzwischen gewechselt
     } catch (e) { this._unsub = null; }
     this._subbing = false;
   }
@@ -63,12 +119,13 @@ class SnailCartCard extends HTMLElement {
     this._rt = setTimeout(() => this._fetch(), 250);
   }
   async _fetch() {
+    if (!this._h) return;
     const mode = this._mode();
-    if (mode === "missing") { this._data = null; this._err = null; return this._render(); }
+    if (mode !== "live") { this._data = null; this._err = null; return this._render(); }
     const n = (this._fn = (this._fn || 0) + 1);
     try {
       const res = await this._h.callWS({ type: "call_service", domain: "snailcart", service: "get_list",
-        service_data: { entity_id: this._c.entity, include_pending: true, include_done: this._opt.done }, return_response: true });
+        service_data: { entity_id: this._ent, include_pending: true, include_done: this._opt.done }, return_response: true });
       if (n !== this._fn) return;
       this._data = (res && res.response) || null; this._err = null;
     } catch (e) { if (n !== this._fn) return; this._err = (e && e.message) || String(e); }
@@ -148,14 +205,13 @@ class SnailCartCard extends HTMLElement {
   }
   _render() {
     if (!this._built || !this._h) return;
-    const t = this._t, mode = this._mode(), open = this._openItems();
+    const t = this._t, prob = this._problem(), live = this._mode() === "live", open = this._openItems();
     const pend = this._items().filter(i => i.delete_requested).length;
-    t.cnt.textContent = mode === "missing" ? "–" : `${open.length} offen`;
+    t.cnt.textContent = !live ? "–" : `${open.length} offen`;
     t.cnt.classList.toggle("on", open.length > 0);
     const list = this._c.layout === "list";
     t.row.textContent = ""; t.lst.textContent = ""; t.msg.hidden = true; t.row.hidden = list; t.lst.hidden = !list;
-    if (mode === "missing") { t.row.hidden = t.lst.hidden = true; t.msg.hidden = false; this._setMsg(t.msg, "mdi:puzzle-outline", "SnailCart ist noch nicht verbunden", "Sobald die SnailCart-Integration installiert ist, erscheint hier die Einkaufsliste."); }
-    else if (this._err && !this._data) { t.row.hidden = t.lst.hidden = true; t.msg.hidden = false; this._setMsg(t.msg, "mdi:alert-circle-outline", "Liste konnte nicht geladen werden", this._err); }
+    if (prob) { t.row.hidden = t.lst.hidden = true; t.msg.hidden = false; this._setMsg(t.msg, ...prob); }
     else if (!open.length) { t.row.hidden = t.lst.hidden = true; t.msg.hidden = false; this._setMsg(t.msg, "mdi:cart-check", "Alles eingekauft", "Die Liste ist leer."); }
     else if (list) this._renderList(open);
     else {
@@ -173,7 +229,7 @@ class SnailCartCard extends HTMLElement {
     const ft = [];
     if (na) ft.push(`${na} nicht bekommen`);
     if (pend) ft.push(`${pend} zum Löschen vorgemerkt`);
-    t.ft.hidden = !ft.length || mode === "missing"; t.ft.textContent = ft.join(" · ");
+    t.ft.hidden = !ft.length || !live; t.ft.textContent = ft.join(" · ");
     if (this._ov) this._renderOv();
   }
 
@@ -295,8 +351,8 @@ class SnailCartCard extends HTMLElement {
 
   _renderOv() {
     const o = this._o; if (!o) return;
-    const mode = this._mode(), open = this._openItems();
-    o.cnt.textContent = mode === "missing" ? "–" : `${open.length} offen`;
+    const prob = this._problem(), open = this._openItems();
+    o.cnt.textContent = this._mode() !== "live" ? "–" : `${open.length} offen`;
     o.cnt.classList.toggle("on", open.length > 0);
     o.s.querySelectorAll("[data-s]").forEach(b => b.classList.toggle("on", b.dataset.s === this._opt.sort));
     o.s.querySelectorAll("[data-o]").forEach(b => b.classList.toggle("on", !!this._opt[b.dataset.o]));
@@ -306,8 +362,7 @@ class SnailCartCard extends HTMLElement {
       const d = this._el("div", "empty"); d.appendChild(this._ico(icon)); d.appendChild(this._el("b", null, title)); if (text) d.appendChild(this._el("span", null, text));
       body.appendChild(d);
     };
-    if (mode === "missing") return empty("mdi:puzzle-outline", "SnailCart ist noch nicht verbunden", "Sobald die SnailCart-Integration installiert ist, erscheint hier die Einkaufsliste.");
-    if (this._err && !this._data) return empty("mdi:alert-circle-outline", "Liste konnte nicht geladen werden", this._err);
+    if (prob) return empty(...prob);
 
     const vis = this._items().filter(i => {
       if (i.delete_requested) return this._opt.pending;
@@ -391,7 +446,7 @@ class SnailCartCard extends HTMLElement {
   /* ---------- Aktionen ---------- */
   async _remove(it) {
     try {
-      await this._h.callService("todo", "remove_item", { item: it.id }, { entity_id: this._c.entity });
+      await this._h.callService("todo", "remove_item", { item: it.id }, { entity_id: this._ent });
     } catch (e) { this._say(`Fehler: ${(e && e.message) || e}`); return this._reload(); }
     clearTimeout(this._rt);
     await this._fetch();                                // frischer Stand: gelöscht oder nur vorgemerkt?
@@ -415,4 +470,4 @@ if (!customElements.get("snail-cart-card")) {
   console.info(`snail-cart-card ${CARD_VERSION} (SnailCart-Integration)`);
 }
 window.customCards = window.customCards || [];
-if (!window.customCards.some(c => c.type === "snail-cart-card")) window.customCards.push({ type: "snail-cart-card", name: "Snail Einkaufsliste", description: "SnailCart-Einkaufsliste: kompakte Kachel und Overlay mit Kategorien, Bildern und Löschvormerkung" });
+if (!window.customCards.some(c => c.type === "snail-cart-card")) window.customCards.push({ type: "snail-cart-card", name: "Snail Einkaufsliste", preview: true, description: "SnailCart-Einkaufsliste: kompakte Kachel und Overlay mit Kategorien, Bildern und Löschvormerkung" });

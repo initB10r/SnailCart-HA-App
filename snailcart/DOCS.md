@@ -118,8 +118,9 @@ optional mit Siri/Alexa-Sprachsteuerung über eine separate API.
   Kategorie mit Icon, Bild, Produktnotizen, wer eingetragen hat) und
   `snailcart.cancel_delete` (Vormerkung zurücknehmen).
 - **Dashboard-Karte** `custom:snail-cart-card` wird mit der Integration
-  ausgeliefert und automatisch geladen (Optionen: `entity`, `title`,
-  `layout: tiles|list`).
+  ausgeliefert und automatisch geladen. Über „Karte hinzufügen“ → „Snail
+  Einkaufsliste“ ist sie sofort einsatzbereit und im visuellen Editor
+  einstellbar (Liste, Titel, Darstellung `tiles|list`).
 - Änderungen erscheinen per Push in etwa einer Sekunde in HA.
 - **Sicherheit**: eigener interner Port 8097 (siehe Ports), Schlüssel nur als
   Hash gespeichert und einmalig angezeigt (Einstellungen →

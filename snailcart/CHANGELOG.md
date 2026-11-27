@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.26.1
+
+- **Dashboard-Karte direkt einsatzbereit**: Beim Hinzufügen über „Karte
+  hinzufügen“ wählt die Karte automatisch die (erste) für Home Assistant
+  freigegebene SnailCart-Liste. Bisher kam ohne `entity` ein
+  Konfigurationsfehler.
+- **Visueller Editor** für die Karte: Liste (nur SnailCart-Listen zur Auswahl),
+  Titel und Darstellung (Kacheln oder Liste nach Kategorien) lassen sich ohne
+  YAML einstellen. Die Vorschau aktualisiert sich sofort.
+- Die Karte erscheint in der Kartenauswahl mit Vorschau.
+- Verständliche Hinweise, wenn keine Liste freigegeben ist oder eine fremde
+  todo-Liste eingetragen wurde.
+
 ## 0.26.0
 
 - **Dashboard-Karte wird mit der Integration ausgeliefert**: Die Karte
